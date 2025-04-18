@@ -386,6 +386,8 @@ void CommandIdentification(_COMMAND _command, uint8_t _data[]){
 
 		while((HAL_GetTick() - _displayBeginTime) < 1000 && RxCanFlag == 0)
 			;
+
+    _PidInit(&Setting_PID);
 	}else if(_command == COMMAND_PID_SET_CONDITION){
 		lastError = 0;
 		if(_data[0] == 0x00){
