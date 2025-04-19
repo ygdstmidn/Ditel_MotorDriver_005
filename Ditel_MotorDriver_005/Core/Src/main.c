@@ -458,8 +458,8 @@ void PID_MotorControl(__MOTOR_MODE _targetMode, uint16_t __targetValue){
 
 	_PID(&PidInfoAndResult);
 
-	if(PidInfoAndResult._operationAmount > 10000.0){
-		PidInfoAndResult._operationAmount = 10000.0;
+	if(PidInfoAndResult._operationAmount > 1000.0){
+		PidInfoAndResult._operationAmount = 1000.0;
 	}else if(PidInfoAndResult._operationAmount < 1.0){
 		PidInfoAndResult._operationAmount = 1.0;
 	}
@@ -622,6 +622,29 @@ int main(void)
 		  while((_readTimeForLoopCycle - _lastReadTimeForLoopCycle) < _CONTROL_LOOP_CYCLE){
 			  _readTimeForLoopCycle = HAL_GetTick();
 			  _loopCheckCounter++;
+        if(RxCanFlag == 1)
+        {
+          lastCommandGetTime = HAL_GetTick();
+
+          for(uint8_t _i = 0; _i < COMMAND_DATA_SIZE; _i++)
+            commandData[_i] = 0;
+      
+          if(RxCanFlag == 1){
+            RxCanFlag = 0;
+      
+            if(RxHeader.DLC != CAN_DATA_SIZE){
+              lastError = ERROR_INCORRECT_DATA_SIZE;
+              _7SegDisplay(ERROR_INCORRECT_DATA_SIZE, false);
+              Motor_SetSpeed(_MOTOR_MODE_NEUTRAL, 0);
+              continue;
+            }else{
+              for(uint8_t _i = 0; _i < COMMAND_DATA_SIZE; _i++)
+                commandData[_i] = RxData[_i + 1];
+            }
+          }
+          CommandIdentification(RxData[0], commandData);
+        }
+        
 		  }
 		  _lastReadTimeForLoopCycle = _readTimeForLoopCycle;
 	  }
