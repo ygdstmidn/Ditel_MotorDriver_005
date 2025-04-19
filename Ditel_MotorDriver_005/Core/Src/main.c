@@ -348,6 +348,22 @@ void CommandIdentification(_COMMAND _command, uint8_t _data[]){
 		_Ki = ((double)((uint16_t)(_data[2] << 8) | (_data[3] << 0))) / 100.0;
 		_Kd = ((double)((uint16_t)(_data[4] << 8) | (_data[5] << 0))) / 100.0;
 
+    int8_t scale = _data[6];
+    while (scale < 0)
+    {
+      _Kp /= 10.0;
+      _Ki /= 10.0;
+      _Kd /= 10.0;
+      scale++;
+    }
+    while (scale > 0)
+    {
+      _Kp *= 10.0;
+      _Ki *= 10.0;
+      _Kd *= 10.0;
+      scale--;
+    }
+
 		if(_Kp < 0.0 || _Kp > PID_GAIN_MAX_VALUE){
 			lastError = ERROR_INCORRECT_PID_GAIN;
 			_7SegDisplay(ERROR_INCORRECT_PID_GAIN, false);
@@ -435,11 +451,17 @@ void PID_MotorControl(__MOTOR_MODE _targetMode, uint16_t __targetValue){
 
 	_PID(&PidInfoAndResult);
 
-	if(PidInfoAndResult._operationAmount > 60000.0){
-		PidInfoAndResult._operationAmount = 60000.0;
-	}else if(PidInfoAndResult._operationAmount < 0){
-		PidInfoAndResult._operationAmount = 0.0;
+	if(PidInfoAndResult._operationAmount > 10000.0){
+		PidInfoAndResult._operationAmount = 10000.0;
+	}else if(PidInfoAndResult._operationAmount < 1.0){
+		PidInfoAndResult._operationAmount = 1.0;
 	}
+
+  // Apply a low-pass filter to smooth the operation amount
+  static double filteredOperationAmount = 0.0;
+  const double alpha = 0.1; // Smoothing factor (0 < alpha <= 1)
+  filteredOperationAmount = alpha * PidInfoAndResult._operationAmount + (1 - alpha) * filteredOperationAmount;
+  PidInfoAndResult._operationAmount = filteredOperationAmount;
 
 	if(PID_ConsolDebug)
 		  Dprintf(">Operation Amount:%u\n", (uint16_t)PidInfoAndResult._operationAmount);
@@ -451,7 +473,7 @@ void PID_MotorControl(__MOTOR_MODE _targetMode, uint16_t __targetValue){
 		Dprintf(">Integral Of deviation:%u\n", (uint16_t)(PidInfoAndResult.__IntegralOfdeviation));
 	}
 
-	if((uint16_t)PidInfoAndResult.__IntegralOfdeviation > PID_MAX_INTEGRAL_OF_DEBIATION){
+	if((uint16_t)PidInfoAndResult.__IntegralOfdeviation > PID_MAX_INTEGRAL_OF_DEBIATION/Setting_PID._PID_Setting_Ki||(uint16_t)PidInfoAndResult.__IntegralOfdeviation > UINT16_MAX){
 		lastError = ERROR_EXCEED_INTEGRAL_MAX;
 		_7SegDisplay(ERROR_EXCEED_INTEGRAL_MAX, false);
 		Motor_SetSpeed(_MOTOR_MODE_NEUTRAL, 0);
