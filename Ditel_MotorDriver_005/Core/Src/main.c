@@ -458,8 +458,8 @@ void PID_MotorControl(__MOTOR_MODE _targetMode, uint16_t __targetValue){
 
 	_PID(&PidInfoAndResult);
 
-	if(PidInfoAndResult._operationAmount > 1000.0){
-		PidInfoAndResult._operationAmount = 1000.0;
+	if(PidInfoAndResult._operationAmount > PID_MAX_OUTPUT){
+		PidInfoAndResult._operationAmount = PID_MAX_OUTPUT;
 	}else if(PidInfoAndResult._operationAmount < 1.0){
 		PidInfoAndResult._operationAmount = 1.0;
 	}
