@@ -225,9 +225,12 @@ void _Init_RotaryEncoder(){
 }
 
 void _Init_PID(){
-	Setting_PID._PID_Setting_Kp = 2.0;
-	Setting_PID._PID_Setting_Ki = 5.0;
-	Setting_PID._PID_Setting_Kd = 0.05;
+	// Setting_PID._PID_Setting_Kp = 2.0;
+	// Setting_PID._PID_Setting_Ki = 5.0;
+	// Setting_PID._PID_Setting_Kd = 0.05;
+  Setting_PID._PID_Setting_Kp = 0.0;
+  Setting_PID._PID_Setting_Ki = 0.0;
+  Setting_PID._PID_Setting_Kd = 0.0;
 
 	Setting_PID._PID_Setting_loopCycleTime = _CONTROL_LOOP_CYCLE;
 
