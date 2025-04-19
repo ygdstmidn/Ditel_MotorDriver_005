@@ -88,6 +88,9 @@ uint32_t nowMotorSpeedRef = 0;
 __MOTOR_MODE refMotorMode_not_PID = _MOTOR_MODE_NEUTRAL;
 uint16_t refMotorSpeed_not_PID = 0;
 
+// edited by ygdstmidn
+double filteredOperationAmount = 0.0;
+
 
 /* USER CODE END PV */
 
@@ -419,6 +422,7 @@ void CommandIdentification(_COMMAND _command, uint8_t _data[]){
 			_lastReadTimeForLoopCycle = _readTimeForLoopCycle = HAL_GetTick();
 			PidInfoAndResult.__IntegralOfdeviation = 0.0;
 			PidInfoAndResult.__LastDeviation = 0.0;
+      filteredOperationAmount = 0.0;
 		}
 	}else if(lastError != ERROR_EXCEED_INTEGRAL_MAX){
 		lastError = ERROR_INCORRECT_COMMAND;
@@ -458,7 +462,7 @@ void PID_MotorControl(__MOTOR_MODE _targetMode, uint16_t __targetValue){
 	}
 
   // Apply a low-pass filter to smooth the operation amount
-  static double filteredOperationAmount = 0.0;
+  // static double filteredOperationAmount = 0.0;
   const double alpha = 0.1; // Smoothing factor (0 < alpha <= 1)
   filteredOperationAmount = alpha * PidInfoAndResult._operationAmount + (1 - alpha) * filteredOperationAmount;
   PidInfoAndResult._operationAmount = filteredOperationAmount;
